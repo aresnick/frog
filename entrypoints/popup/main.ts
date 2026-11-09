@@ -1,11 +1,14 @@
 import { browser } from 'wxt/browser';
-import { defaultSettings, normalizeSettings, readTint, type TintSettings } from '../../utils/tint';
+import { defaultSettings, normalizeSettings, type TintSettings } from '../../utils/tint';
 import './style.css';
+import type { Calibration } from '../../utils/calibration';
 
 const element = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 const controls = element<HTMLFieldSetElement>('controls');
+const globalControls = element<HTMLFieldSetElement>('global-controls');
 const toggle = element<HTMLInputElement>('enabled');
 const status = element<HTMLParagraphElement>('status');
+const calibrate = element<HTMLButtonElement>('calibrate');
 const sliders = {
   hue: element<HTMLInputElement>('hue'),
   saturation: element<HTMLInputElement>('saturation'),
@@ -14,6 +17,14 @@ const sliders = {
 let settings = { ...defaultSettings };
 let tabId: number | undefined;
 let revision = 0;
+let session: Calibration | null = null;
+
+function renderGuide() {
+  calibrate.textContent = session ? 'Resume calibration →' : 'Find my color →';
+  element('guided-description').textContent = session
+    ? `${session.rounds} choice${session.rounds === 1 ? '' : 's'} saved. Pick up where you left off.`
+    : 'Saturation → brightness → hue. About 20 choices, at your pace.';
+}
 
 function render() {
   for (const key of Object.keys(sliders) as (keyof TintSettings)[]) {
@@ -23,12 +34,14 @@ function render() {
     sliders[key].setAttribute('aria-valuetext', `${settings[key]} ${key === 'hue' ? 'degrees' : 'percent'}`);
   }
   document.documentElement.style.setProperty('--tint-hue', String(settings.hue));
-  element('toggle-caption').textContent = toggle.checked ? 'On for this page' : 'Off for this page';
+  element('toggle-caption').textContent = toggle.checked ? 'On across websites' : 'Off across websites';
 }
 
 function unavailable() {
   controls.disabled = true;
-  status.textContent = 'This page can’t be tinted. Try a regular website.';
+  globalControls.disabled = true;
+  calibrate.disabled = true;
+  status.textContent = 'This page can’t be recolored. Try a regular website.';
   status.classList.add('error');
 }
 
@@ -42,7 +55,9 @@ async function apply() {
     });
     if (currentRevision !== revision) return;
     if (!response?.ok) return unavailable();
-    status.textContent = toggle.checked ? 'Just this page. Clears when you reload.' : 'Your tint is saved for next time.';
+    session = response.session ?? null;
+    renderGuide();
+    status.textContent = toggle.checked ? 'Saved. Applied automatically across websites.' : 'Off everywhere. Original backgrounds restored.';
   } catch {
     if (currentRevision === revision) unavailable();
   }
@@ -60,21 +75,36 @@ element('reset').addEventListener('click', () => {
   settings = { ...defaultSettings };
   void apply();
 });
+calibrate.addEventListener('click', async () => {
+  if (tabId === undefined) return;
+  calibrate.disabled = true;
+  try {
+    const response = await browser.runtime.sendMessage({ type: 'frog:start-calibration', tabId });
+    if (!response?.ok) return unavailable();
+    window.close();
+  } catch {
+    unavailable();
+  }
+});
 
 async function initialize() {
   try {
-    const [stored, tabs] = await Promise.all([
-      browser.storage.local.get('frogSettings'),
-      browser.tabs.query({ active: true, currentWindow: true }),
-    ]);
+    const tabs = await browser.tabs.query({ active: true, currentWindow: true });
     tabId = tabs[0]?.id;
     if (tabId === undefined) return unavailable();
-    const [result] = await browser.scripting.executeScript({ target: { tabId }, func: readTint });
-    toggle.checked = result?.result != null;
-    settings = normalizeSettings(result?.result ?? stored.frogSettings);
+    const response = await browser.runtime.sendMessage({ type: 'frog:get-state', tabId });
+    if (!response?.ok) return unavailable();
+    session = response.session ?? null;
+    toggle.checked = response.preference.enabled;
+    settings = normalizeSettings(response.current ?? response.preference.settings);
     render();
+    renderGuide();
     controls.disabled = false;
-    status.textContent = toggle.checked ? 'Just this page. Clears when you reload.' : 'Move a slider or switch on your tint.';
+    globalControls.disabled = false;
+    calibrate.disabled = response.supported === false;
+    status.textContent = response.supported === false
+      ? 'Chrome protects this page. Global settings still apply on websites.'
+      : toggle.checked ? 'Your saved color follows you across websites.' : 'Start the guide or use the manual sliders.';
   } catch {
     unavailable();
   }

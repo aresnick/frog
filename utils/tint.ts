@@ -18,35 +18,11 @@ export function normalizeSettings(value: unknown): TintSettings {
   };
 }
 
-// Injected by Chrome: keep these function bodies self-contained.
-export function readTint(): TintSettings | null {
-  const element = document.getElementById('__frog_tint_174b86__');
-  try {
-    return element?.dataset.frogSettings ? JSON.parse(element.dataset.frogSettings) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function applyTint(settings: TintSettings, enabled: boolean): void {
-  document.getElementById('__wxt_blue_filter_overlay_174b86__')?.remove();
-  const id = '__frog_tint_174b86__';
-  let overlay = document.getElementById(id);
-  if (!enabled) {
-    overlay?.remove();
-    return;
-  }
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = id;
-    overlay.setAttribute('aria-hidden', 'true');
-    document.documentElement.append(overlay);
-  }
-
-  // A pale hue has a strongest channel of 1; brightness scales all channels.
-  // Multiplication preserves black text and leaves existing page styles alone.
-  const hue = (settings.hue % 360) / 60;
-  const chroma = settings.saturation / 100;
+/** HSV/HSB color, used directly as the page background. */
+export function backgroundColor(settings: TintSettings): string {
+  const { hue: degrees, saturation, brightness } = normalizeSettings(settings);
+  const hue = (degrees % 360) / 60;
+  const chroma = saturation / 100;
   const secondary = chroma * (1 - Math.abs(hue % 2 - 1));
   const channels = hue < 1 ? [chroma, secondary, 0]
     : hue < 2 ? [secondary, chroma, 0]
@@ -54,15 +30,35 @@ export function applyTint(settings: TintSettings, enabled: boolean): void {
     : hue < 4 ? [0, secondary, chroma]
     : hue < 5 ? [secondary, 0, chroma]
     : [chroma, 0, secondary];
-  const rgb = channels.map(channel =>
-    Math.round((channel + 1 - chroma) * settings.brightness / 100 * 255));
-  const styles: Record<string, string> = {
-    all: 'initial', position: 'fixed', inset: '0', width: '100%', height: '100%',
-    background: `rgb(${rgb.join(', ')})`, 'mix-blend-mode': 'multiply',
-    'pointer-events': 'none', 'z-index': '2147483647',
-  };
-  for (const [property, value] of Object.entries(styles)) {
-    overlay.style.setProperty(property, value, 'important');
-  }
-  overlay.dataset.frogSettings = JSON.stringify(settings);
+  const rgb = channels.map(channel => Math.round((channel + 1 - chroma) * brightness / 100 * 255));
+  return `rgb(${rgb.join(', ')})`;
+}
+
+// Injected functions share the content script's isolated world, not the page's.
+export async function readTint(): Promise<TintSettings | null> {
+  const controller = (globalThis as typeof globalThis & {
+    __frogBackground?: { ready: Promise<void>; current(): { settings: TintSettings; enabled: boolean } };
+  }).__frogBackground;
+  if (!controller) throw new Error('Frog could not connect to this page.');
+  await controller.ready;
+  const current = controller.current();
+  return current.enabled ? current.settings : null;
+}
+
+export async function applyTint(settings: TintSettings, enabled: boolean): Promise<void> {
+  const controller = (globalThis as typeof globalThis & {
+    __frogBackground?: { ready: Promise<void>; preview(settings: TintSettings, enabled: boolean): void };
+  }).__frogBackground;
+  if (!controller) throw new Error('Frog could not connect to this page.');
+  await controller.ready;
+  controller.preview(settings, enabled);
+}
+
+export async function useSavedTint(_settings: TintSettings, _enabled: boolean): Promise<void> {
+  const controller = (globalThis as typeof globalThis & {
+    __frogBackground?: { ready: Promise<void>; useSaved(): Promise<void> };
+  }).__frogBackground;
+  if (!controller) throw new Error('Frog could not connect to this page.');
+  await controller.ready;
+  await controller.useSaved();
 }

@@ -3,10 +3,11 @@ import { defineConfig } from 'wxt';
 export default defineConfig({
   manifest: {
     name: 'Frog',
-    description: 'Find a comfortable page tint with live hue, saturation, and brightness controls.',
+    description: 'Find a comfortable background color with A/B calibration and apply it automatically across websites.',
     permissions: ['activeTab', 'scripting', 'storage'],
+    host_permissions: ['<all_urls>'],
     action: {
-      default_title: 'Frog · Adjust your page tint',
+      default_title: 'Frog · Adjust your background color',
     },
     icons: {
       16: '/icon/16.png',

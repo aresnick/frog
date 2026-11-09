@@ -41,4 +41,16 @@ footer { border-top: 1px solid #e1e6d9; margin: 0 -24px; padding: 11px 24px; bac
 footer p { margin: 0; color: #76826f; font-size: 10px; line-height: 1.5; }
 footer .error { color: #8b4936; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.guided { background: #e8eedf; border: 1px solid #dce5d3; border-radius: 13px; padding: 16px; margin-bottom: 16px; }
+.guided strong { display: block; font-size: 13px; }
+.guided p { color: #66765d; font-size: 11px; line-height: 1.6; margin: 7px 0 13px; }
+.guided button { display: flex; justify-content: space-between; width: 100%; background: #386b4f; color: white; padding: 10px 12px; font-size: 12px; border: 0; }
+.guided button:hover:not(:disabled) { background: #2b563e; }
+.guided button:disabled { opacity: .5; cursor: default; }
+.manual { padding-bottom: 18px; }
+.manual summary { font-size: 12px; cursor: pointer; padding: 3px 0; color: #496348; }
+.manual summary:focus-visible { outline: 2px solid #386b4f; outline-offset: 3px; }
+.manual-hint { font-size: 10px; line-height: 1.5; color: #788373; margin: 8px 0 12px; }
 @media (prefers-reduced-motion: reduce) { *, *::after { transition: none !important; } }
+
+#global-controls { margin-bottom: 14px; }
