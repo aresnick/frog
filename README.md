@@ -2,6 +2,17 @@
 
 A WXT Chrome extension that finds a comfortable background color and applies it automatically across websites. Frog changes the page background and neutral content surfaces directly; it does not place a tinted overlay over the page. Text, images, videos, background images, and colored controls retain their own colors.
 
+## Install directly from this repository
+
+No Node.js installation or build step is needed to use Frog.
+
+1. Clone the repository, or download GitHub’s **Code → Download ZIP** and extract it.
+2. Open `chrome://extensions` and enable **Developer mode**.
+3. Click **Load unpacked** and select the repository folder itself—the folder containing this README and `manifest.json`.
+4. Allow website access if Chrome asks, then pin Frog from the extensions menu.
+
+The checked-in `manifest.json`, JavaScript, icons, and assets form a ready-to-load production extension. The WXT/TypeScript source is included alongside it for development.
+
 ## Find and save your color
 
 1. Open Frog’s toolbar popup and click **Find my color**.
@@ -30,7 +41,7 @@ Frog changes background colors, rather than filtering foreground content or dimm
 ## Load or update in Chrome
 
 1. Open `chrome://extensions` and enable **Developer mode**.
-2. Reload the existing installation, or choose **Load unpacked** and select `.output/chrome-mv3`.
+2. Reload the existing installation, or choose **Load unpacked** and select the repository folder containing `manifest.json`.
 3. Allow website access if Chrome asks: this version needs permission to recolor pages automatically.
 4. Refresh any pages with the previous Frog overlay or guide open. Pin Frog from the extensions menu.
 
@@ -46,11 +57,13 @@ Requires Node.js 22 or newer.
 npm install
 npm run dev
 npm run typecheck
-npm test
 npm run build
+npm test
 npm run zip
 ```
 
-The unpacked extension is `.output/chrome-mv3`; the ZIP is `.output/frog-1.3.0-chrome.zip`. The frog’s vector source is `public/icon/frog.svg`.
+WXT builds into `.output/chrome-mv3`. Both `npm run build` and `npm run zip` then refresh the checked-in runtime files at the repository root, removing old generated assets. Commit those refreshed files with source changes so people can continue loading the repository directly. The ZIP is `.output/frog-1.3.0-chrome.zip`. The frog’s vector source is `public/icon/frog.svg`.
 
-Tests cover calibration order, hue wraparound, fixed non-target controls, endpoints, neutral results, ties/rejection, restoration, serialization, HSB colors, the white-versus-original distinction, preference migration, and the persistent global off state. Browser checks cover background-only rendering, dynamic surfaces, global propagation, reload/new-tab persistence, calibration previews and saving, foreground preservation, and restricted pages.
+Root-level `manifest.json`, `background.js`, `calibration.js`, `popup.html`, `assets/`, `chunks/`, `content-scripts/`, and `icon/` are generated distribution files. Edit the source in `entrypoints/`, `utils/`, `public/`, and `wxt.config.ts`, then build. The exporter records its owned paths in `scripts/chrome-build-files.json` and never cleans source directories.
+
+Tests cover calibration order, hue wraparound, fixed non-target controls, endpoints, neutral results, ties/rejection, restoration, serialization, HSB colors, the white-versus-original distinction, preference migration, and the persistent global off state. The distribution test checks that the root manifest and all referenced runtime resources are present. Browser checks cover background-only rendering, dynamic surfaces, global propagation, reload/new-tab persistence, calibration previews and saving, foreground preservation, and restricted pages.

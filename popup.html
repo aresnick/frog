@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frog</title>
+    <script type="module" crossorigin src="/chunks/popup-jvfIaTjq.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/popup-Cei3jlr_.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <img src="/icon/frog.svg" alt="" width="48" height="48">
+        <div><h1>Frog<span class="brand-dot">.</span></h1><p>A calmer background, everywhere.</p></div>
+      </header>
+      <fieldset id="global-controls" disabled>
+        <label class="toggle-row" for="enabled">
+          <span><strong>Background color</strong><span id="toggle-caption" class="caption">Off across websites</span></span>
+          <input type="checkbox" id="enabled" role="switch">
+          <span class="switch" aria-hidden="true"></span>
+        </label>
+      </fieldset>
+      <section class="guided" aria-label="Guided tint calibration">
+        <strong>Find your background color.</strong>
+        <p id="guided-description">Saturation → brightness → hue. About 20 choices, at your pace.</p>
+        <button id="calibrate" type="button" disabled>Find my color <span aria-hidden="true">→</span></button>
+      </section>
+      <details class="manual">
+        <summary>Manual sliders</summary>
+        <p class="manual-hint">Adjustments save your color across websites.</p>
+        <fieldset id="controls" disabled>
+        <legend class="sr-only">Background color controls</legend>
+        <section class="sliders" aria-label="Background adjustments">
+          <div class="slider-group">
+            <div class="slider-label"><label for="hue">Hue</label><output id="hue-value" for="hue">185°</output></div>
+            <input id="hue" type="range" min="0" max="360" value="185" step="1">
+            <div class="range-labels" aria-hidden="true"><span>Warm</span><span>Cool</span><span>Warm</span></div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-label"><label for="saturation">Saturation</label><output id="saturation-value" for="saturation">25%</output></div>
+            <input id="saturation" type="range" min="0" max="100" value="25" step="1">
+            <div class="range-labels" aria-hidden="true"><span>Neutral</span><span>Colorful</span></div>
+          </div>
+          <div class="slider-group">
+            <div class="slider-label"><label for="brightness">Brightness</label><output id="brightness-value" for="brightness">100%</output></div>
+            <input id="brightness" type="range" min="20" max="100" value="100" step="1">
+            <div class="range-labels" aria-hidden="true"><span>Dim</span><span>Bright</span></div>
+          </div>
+        </section>
+        <div class="bottom-row"><span class="live-note"><i aria-hidden="true"></i>Changes apply live</span><button id="reset" type="button">Reset</button></div>
+        </fieldset>
+      </details>
+      <footer><p id="status" role="status" aria-live="polite">Connecting to this page…</p></footer>
+    </main>
+  </body>
+</html>

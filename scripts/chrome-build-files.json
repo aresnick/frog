@@ -1,0 +1,10 @@
+[
+  "assets",
+  "background.js",
+  "calibration.js",
+  "chunks",
+  "content-scripts",
+  "icon",
+  "manifest.json",
+  "popup.html"
+]
